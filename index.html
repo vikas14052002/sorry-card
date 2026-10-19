@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>A Little Sorry</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Nunito:wght@400;600;800&display=swap">
+<style>
+/* Layout: one hand-written note card centered on a blush field; tap through pages like a folded letter. Single deliberate look (works on any host theme). */
+:root {
+  --field: #fbe3ea;
+  --field-2: #f6cfdc;
+  --paper: #fffaf7;
+  --ink: #5a1f3a;
+  --ink-soft: #8e5470;
+  --berry: #d6336c;
+  --blush: #ffb3c7;
+  --display: "Caveat", "Segoe Print", "Bradley Hand", cursive;
+  --body: "Nunito", "Avenir Next", system-ui, sans-serif;
+  color-scheme: light;
+}
+html, body { height: 100%; }
+body {
+  margin: 0;
+  background: radial-gradient(120% 90% at 50% 0%, var(--field) 0%, var(--field-2) 100%);
+  background-color: var(--field);
+  color: var(--ink);
+  font-family: var(--body);
+  display: grid;
+  place-items: center;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 24px;
+  overflow-x: hidden;
+  box-sizing: border-box;
+}
+#floaty { position: fixed; inset: 0; pointer-events: none; z-index: 0; }
+.card {
+  position: relative; z-index: 1;
+  width: min(420px, 100%);
+  background: var(--paper);
+  border-radius: 22px;
+  box-shadow: 0 18px 50px -18px rgba(90, 31, 58, .45), 0 2px 0 rgba(90, 31, 58, .06);
+  padding: 28px 26px 22px;
+  box-sizing: border-box;
+  text-align: center;
+  display: flex; flex-direction: column; align-items: center; gap: 14px;
+}
+.card::before {
+  content: ""; position: absolute; top: -12px; left: 50%; translate: -50% 0;
+  width: 92px; height: 24px; background: rgba(255, 179, 199, .75);
+  border-radius: 3px; rotate: -3deg;
+}
+.kitty { width: 140px; height: 120px; }
+.kitty .happy, .kitty .tear { transition: opacity .3s; }
+.kitty .happy { opacity: 0; }
+.kitty.is-happy .sad, .kitty.is-happy .tear { opacity: 0; }
+.kitty.is-happy .happy { opacity: 1; }
+.tear { animation: drip 1.6s ease-in infinite; }
+@keyframes drip { 0% { transform: translateY(0); opacity: 1 } 100% { transform: translateY(14px); opacity: 0 } }
+.kitty .eye { animation: blink 4s infinite; transform-origin: center; transform-box: fill-box; }
+@keyframes blink { 0%, 92%, 100% { transform: scaleY(1) } 95% { transform: scaleY(.1) } }
+.kitty.bounce { animation: bounce .7s ease; }
+@keyframes bounce { 0%,100% { transform: translateY(0) } 40% { transform: translateY(-14px) } 70% { transform: translateY(3px) } }
+
+h1 {
+  font-family: var(--display); font-weight: 700;
+  font-size: clamp(2.3rem, 9vw, 2.9rem); line-height: 1.05;
+  margin: 0; color: var(--berry); text-wrap: balance;
+}
+p.msg { margin: 0; font-size: 1.08rem; line-height: 1.55; color: var(--ink); max-width: 32ch; text-wrap: pretty; }
+p.msg em { font-style: normal; font-family: var(--display); font-size: 1.45em; color: var(--berry); }
+.page { display: flex; flex-direction: column; align-items: center; gap: 12px; min-height: 150px; justify-content: center; }
+.page.enter { animation: rise .45s ease both; }
+@keyframes rise { from { opacity: .2; transform: translateY(10px) } to { opacity: 1; transform: none } }
+
+.compliments { list-style: none; padding: 0; margin: 0; display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+.compliments li {
+  background: #ffe9ef; color: var(--ink); border-radius: 999px;
+  padding: 6px 12px; font-weight: 600; font-size: .92rem;
+}
+.row { display: flex; gap: 12px; align-items: center; justify-content: center; flex-wrap: wrap; position: relative; min-height: 56px; width: 100%; }
+button {
+  font-family: var(--body); font-weight: 800; font-size: 1rem;
+  border: 0; border-radius: 999px; padding: 12px 24px; cursor: pointer;
+  transition: transform .2s, box-shadow .2s;
+}
+button:focus-visible { outline: 3px solid var(--ink); outline-offset: 3px; }
+.btn-main { background: var(--berry); color: #fff; box-shadow: 0 6px 0 #a3204f; }
+.btn-main:active { transform: translateY(4px); box-shadow: 0 2px 0 #a3204f; }
+.btn-ghost { background: #f3e3ea; color: var(--ink-soft); }
+#noBtn { transition: left .25s, top .25s, transform .25s; }
+.dots { display: flex; gap: 6px; }
+.dots span { width: 7px; height: 7px; border-radius: 50%; background: #f1cfdb; transition: background .3s, width .3s; }
+.dots span.on { background: var(--berry); width: 18px; border-radius: 4px; }
+.sign { font-family: var(--display); font-size: 1.5rem; color: var(--ink-soft); margin: 0; }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+</style>
+
+<canvas id="floaty" aria-hidden="true"></canvas>
+
+<main class="card" aria-live="polite">
+  <svg class="kitty" id="kitty" viewBox="0 0 140 120" role="img" aria-label="little cat">
+    <path d="M30 48 L36 12 L60 34 Z" fill="#ffd1dc" stroke="#5a1f3a" stroke-width="3" stroke-linejoin="round"/>
+    <path d="M110 48 L104 12 L80 34 Z" fill="#ffd1dc" stroke="#5a1f3a" stroke-width="3" stroke-linejoin="round"/>
+    <ellipse cx="70" cy="66" rx="48" ry="42" fill="#fff4f6" stroke="#5a1f3a" stroke-width="3"/>
+    <ellipse cx="44" cy="78" rx="8" ry="5" fill="#ffb3c7"/>
+    <ellipse cx="96" cy="78" rx="8" ry="5" fill="#ffb3c7"/>
+    <g class="sad">
+      <ellipse class="eye" cx="52" cy="62" rx="5" ry="6" fill="#5a1f3a"/>
+      <ellipse class="eye" cx="88" cy="62" rx="5" ry="6" fill="#5a1f3a"/>
+      <path d="M44 52 L58 56 M96 52 L82 56" stroke="#5a1f3a" stroke-width="2.5" stroke-linecap="round"/>
+      <path d="M62 86 Q70 79 78 86" fill="none" stroke="#5a1f3a" stroke-width="3" stroke-linecap="round"/>
+    </g>
+    <path class="tear" d="M90 70 q3 6 0 9 q-3 -3 0 -9z" fill="#8fd3ff"/>
+    <g class="happy">
+      <path d="M45 63 Q52 55 59 63 M81 63 Q88 55 95 63" fill="none" stroke="#5a1f3a" stroke-width="3" stroke-linecap="round"/>
+      <path d="M60 80 Q70 92 80 80" fill="#d6336c" stroke="#5a1f3a" stroke-width="3" stroke-linejoin="round"/>
+    </g>
+  </svg>
+
+  <section class="page" id="page"></section>
+
+  <div class="row" id="actions"></div>
+  <div class="dots" id="dots" aria-hidden="true"></div>
+</main>
+
+<script>
+const pages = [
+  { h: "Hey you…", p: "I have something small to say. Tap when you're ready." , btn: "Open it 💌" },
+  { h: "I'm sorry", p: "Really, truly sorry. I hate that I upset you, even a little bit.", btn: "Keep reading" },
+  { h: "It was nothing big", p: "It's not a big matter, and I <em>didn't mean it</em> that way at all. My words came out wrong. My heart didn't.", btn: "Okay…" },
+  { h: "Things I love about you", list: ["Your smile 😊", "Your laugh", "How you care", "Your kindness", "Your patience with me", "The way you say my name", "Literally everything"], btn: "Aww, more?" },
+  { h: "Best thing of my year", p: "You are the <em>best thing</em> that happened to me this year. No contest.", btn: "Last one" },
+  { h: "Forgive me?", p: "Pretty please? 🥺", ask: true },
+  { h: "I love you ❤️", p: "Thank you for forgiving me. I'll make it up to you with hugs, snacks, and whatever you want.", end: true }
+];
+let i = 0;
+const page = document.getElementById("page");
+const actions = document.getElementById("actions");
+const dots = document.getElementById("dots");
+const kitty = document.getElementById("kitty");
+dots.innerHTML = pages.map(() => "<span></span>").join("");
+
+function render() {
+  const pg = pages[i];
+  page.classList.remove("enter"); void page.offsetWidth; page.classList.add("enter");
+  let html = `<h1>${pg.h}</h1>`;
+  if (pg.p) html += `<p class="msg">${pg.p}</p>`;
+  if (pg.list) html += `<ul class="compliments">${pg.list.map(x => `<li>${x}</li>`).join("")}</ul>`;
+  if (pg.end) html += `<p class="sign">— forever yours</p>`;
+  page.innerHTML = html;
+  actions.innerHTML = "";
+  if (pg.ask) {
+    actions.innerHTML = `<button class="btn-main" id="yesBtn">Yes 💖</button><button class="btn-ghost" id="noBtn">No</button>`;
+    let yesScale = 1, tries = 0;
+    const no = document.getElementById("noBtn"), yes = document.getElementById("yesBtn");
+    const noLines = ["No", "Are you sure?", "Really sure?", "Think again 🥺", "Pleeease", "Not an option 😤"];
+    const dodge = (e) => {
+      e.preventDefault();
+      tries++;
+      yesScale = Math.min(yesScale + 0.18, 2);
+      yes.style.transform = `scale(${yesScale})`;
+      no.textContent = noLines[Math.min(tries, noLines.length - 1)];
+      const r = actions.getBoundingClientRect();
+      no.style.position = "absolute";
+      no.style.left = Math.random() * Math.max(0, r.width - no.offsetWidth) + "px";
+      no.style.top = (Math.random() * 60 - 20) + "px";
+    };
+    no.addEventListener("pointerenter", dodge);
+    no.addEventListener("click", dodge);
+    yes.addEventListener("click", () => { i++; burst(); render(); });
+  } else if (!pg.end) {
+    actions.innerHTML = `<button class="btn-main" id="next">${pg.btn}</button>`;
+    document.getElementById("next").addEventListener("click", () => { i++; render(); });
+  } else {
+    actions.innerHTML = `<button class="btn-ghost" id="again">Read it again</button>`;
+    document.getElementById("again").addEventListener("click", () => { i = 0; render(); });
+  }
+  const happy = i >= 3;
+  kitty.classList.toggle("is-happy", happy);
+  kitty.classList.remove("bounce"); void kitty.getBoundingClientRect(); if (happy) kitty.classList.add("bounce");
+  [...dots.children].forEach((d, k) => d.classList.toggle("on", k === i));
+}
+
+/* floating hearts */
+const cv = document.getElementById("floaty"), ctx = cv.getContext("2d");
+const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+let W, H, hearts = [];
+function size() { W = cv.width = innerWidth * devicePixelRatio; H = cv.height = innerHeight * devicePixelRatio; }
+addEventListener("resize", size); size();
+function heart(x, y, s, c, a) {
+  ctx.save(); ctx.globalAlpha = a; ctx.fillStyle = c; ctx.translate(x, y); ctx.scale(s, s);
+  ctx.beginPath(); ctx.moveTo(0, 3);
+  ctx.bezierCurveTo(-5, -2, -10, 3, 0, 10); ctx.bezierCurveTo(10, 3, 5, -2, 0, 3);
+  ctx.fill(); ctx.restore();
+}
+const colors = ["#ff8fab", "#d6336c", "#ffb3c7", "#ff6b9a"];
+function spawn(n, burstMode) {
+  for (let k = 0; k < n; k++) hearts.push({
+    x: burstMode ? W / 2 : Math.random() * W,
+    y: burstMode ? H / 2 : H + 20,
+    vx: burstMode ? (Math.random() - .5) * 14 : (Math.random() - .5) * .6,
+    vy: burstMode ? -Math.random() * 14 - 2 : -Math.random() * 1.2 - .5,
+    s: (Math.random() * 1.6 + 1) * devicePixelRatio,
+    c: colors[k % colors.length], a: burstMode ? 1 : .5, g: burstMode ? .25 : 0
+  });
+}
+function burst() { if (!reduce) spawn(80, true); }
+function tick() {
+  ctx.clearRect(0, 0, W, H);
+  if (hearts.length < 24 && Math.random() < .05) spawn(1, false);
+  hearts = hearts.filter(h => h.y > -40 && h.y < H + 60);
+  for (const h of hearts) { h.x += h.vx; h.y += h.vy; h.vy += h.g; heart(h.x, h.y, h.s, h.c, h.a); }
+  requestAnimationFrame(tick);
+}
+if (!reduce) tick();
+render();
+</script>
+
+</html>
